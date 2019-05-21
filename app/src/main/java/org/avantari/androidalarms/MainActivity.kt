@@ -16,6 +16,10 @@ class MainActivity : AppCompatActivity() {
 
     private val TAG = MainActivity::class.java.simpleName
 
+    companion object {
+        var id = 0
+    }
+
     private val appPreferences by lazy {
         AppPreferences(this)
     }
@@ -23,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        createNotificationChannel()
+//        createNotificationChannel()
 
         btn_timer.setOnClickListener {
 
@@ -40,7 +44,8 @@ class MainActivity : AppCompatActivity() {
                     appPreferences.setHour(hour)
                     appPreferences.setMin(min)
                     textView.text = getFormattedTime(hour, min)
-                    NotificationScheduler.setReminder(this@MainActivity, AlarmReceiver::class.java, appPreferences.getHour(), appPreferences.getMin())
+                    NotificationScheduler.setReminder(this@MainActivity, AlarmReceiver::class.java, hour, min, id)
+                    id++
                 }, h, m, false)
 
         builder.show()

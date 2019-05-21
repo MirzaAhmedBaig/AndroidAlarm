@@ -15,11 +15,10 @@ import java.util.*
 
 
 object NotificationScheduler {
-    val DAILY_REMINDER_REQUEST_CODE = 100
     val TAG = "NotificationScheduler"
-    val CHANNEL_ID = "org.avantari.performancematrics.alarm"
+    val CHANNEL_ID = "org.avantari.androidalarms.alarm"
 
-    fun setReminder(context: Context, cls: Class<*>, hour: Int, min: Int) {
+    fun setReminder(context: Context, cls: Class<*>, hour: Int, min: Int, alarmID: Int) {
         val calendar = Calendar.getInstance()
 
         val setcalendar = Calendar.getInstance()
@@ -28,7 +27,7 @@ object NotificationScheduler {
         setcalendar.set(Calendar.SECOND, 0)
 
         // cancel already scheduled reminders
-        cancelReminder(context, cls)
+//        cancelReminder(context, cls)
 
         if (setcalendar.before(calendar))
             setcalendar.add(Calendar.DATE, 1)
@@ -44,13 +43,14 @@ object NotificationScheduler {
 
 
         val intent1 = Intent(context, cls)
-        val pendingIntent = PendingIntent.getBroadcast(context, DAILY_REMINDER_REQUEST_CODE, intent1, PendingIntent.FLAG_UPDATE_CURRENT)
+        intent1.putExtra("name", alarmID)
+        val pendingIntent = PendingIntent.getBroadcast(context, alarmID, intent1, PendingIntent.FLAG_UPDATE_CURRENT)
         val am = context.getSystemService(ALARM_SERVICE) as AlarmManager
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, setcalendar.timeInMillis, AlarmManager.INTERVAL_DAY, pendingIntent)
 
     }
 
-    private fun cancelReminder(context: Context, cls: Class<*>) {
+    private fun cancelReminder(context: Context, cls: Class<*>, alarmID: Int) {
         // Disable a receiver
 
         val receiver = ComponentName(context, cls)
@@ -61,13 +61,13 @@ object NotificationScheduler {
                 PackageManager.DONT_KILL_APP)
 
         val intent1 = Intent(context, cls)
-        val pendingIntent = PendingIntent.getBroadcast(context, DAILY_REMINDER_REQUEST_CODE, intent1, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(context, alarmID, intent1, PendingIntent.FLAG_UPDATE_CURRENT)
         val am = context.getSystemService(ALARM_SERVICE) as AlarmManager
         am.cancel(pendingIntent)
         pendingIntent.cancel()
     }
 
-    fun showNotification(context: Context, cls: Class<*>, title: String, content: String) {
+    fun showNotification(context: Context, cls: Class<*>, title: String, content: String, alarmID: Int) {
 //        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val alarmSound = Uri.parse("android.resource://" + context.packageName + "/" + R.raw.bell)
 
@@ -78,7 +78,7 @@ object NotificationScheduler {
         stackBuilder.addParentStack(cls)
         stackBuilder.addNextIntent(notificationIntent)
 
-        val pendingIntent = stackBuilder.getPendingIntent(DAILY_REMINDER_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = stackBuilder.getPendingIntent(alarmID, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
 
@@ -91,7 +91,7 @@ object NotificationScheduler {
                 .setContentIntent(pendingIntent).build()
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(DAILY_REMINDER_REQUEST_CODE, notification)
+        notificationManager.notify(alarmID, notification)
 
     }
 }
